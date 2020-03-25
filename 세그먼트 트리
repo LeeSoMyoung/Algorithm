@@ -1,0 +1,57 @@
+참고한 자료: 종만북(chapter24 구간트리(segment tree)), 교내 알고리즘 스터디 소모임 세그먼트 트리 자료들
+
+세그먼트 트리(segment tree/구간 트리) : 일차원 배열의 특정 구간에 대한 질문을 빠르게 대답하는 데 사용 -> 질문을 전처리하여 구현
+                                       구현 => 주어진 배열의 구간들을 표현하는 이진 트리를 만듦. : 구간에 대한 질문에 대한 답을 노드들의 합집합으로 표현
+                                        따라서 고려해야하는 구간의 수는 logN이므로 시간복잡도는 O(logN)이 된다.
+                             
+ 
+  *세그먼트 트리의 구현 1(구간 합에 대한 세그먼트 트리)
+typedef long long int ll;
+typedef vector<ll> v;
+
+void update(int i,ll val,int h,v& seg){
+    i+=h-1;
+    seg[i]=val;
+    while(i>1){
+        i/=2;
+        seg[i]=seg[i*2]+seg[i*2+1]; // 구간 합에 대한 세그먼트 트리이므로 자식 노드들의 합을 부모 노드에 저장한다.
+    }
+    return;
+}
+ll query(int L, int R, int nodeNum,int nodeL,int nodeR,v&seg){
+    if(L<=nodeL&&nodeR<=R) return seg[nodeNum];
+    else if(nodeR<L||R<nodeL) return 0;
+    int mid=(nodeL+nodeR)/2;
+    return query(L,R,nodeNum*2,nodeL,mid,seg)+query(L,R,nodeNum*2+1,mid+1,nodeR,seg);
+}
+
+   *세그먼트 트리의 구현2(구간 합에 대한 세그먼트 트리)
+typedef long long int ll;
+typedef vector<ll> vi;
+
+struct segment_tree{
+	int h = 1;
+	vi seg;
+	segment_tree(int n) {
+		while (n > h) h <<= 1;
+		seg.resize(2 * h,0LL);
+	}
+	void update(int i, ll val, int h) {
+		i += h - 1;
+		seg[i] = val;
+		while (i > 1) {
+			i /= 2;
+			seg[i] = seg[i * 2] + seg[i * 2 + 1];
+		}
+		return;
+	}
+	ll query(int L, int R, int nodeNum, int nodeL, int nodeR) {
+		if (L <= nodeL && nodeR <= R) return seg[nodeNum];
+		else if (nodeR < L || R < nodeL) return 0;
+		int mid = (nodeL + nodeR) / 2;
+		return query(L, R, nodeNum * 2, nodeL, mid) + query(L, R, nodeNum * 2 + 1, mid + 1, nodeR);
+	}
+	~segment_tree() {
+		seg.clear();
+	}
+};
