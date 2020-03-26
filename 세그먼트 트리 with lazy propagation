@@ -1,0 +1,49 @@
+세그먼트 트리 with lazy propagation
+-> 기존 세그먼트 트리의 업데이트 시간은 O(logN)이다. 그러므로 어느 구간을 업데이트 해야할 때는O(NlogN)이 걸려 시간초과가 나기 쉽다. 
+   하지만 lazy propagation 즉, 게으르게 전파하는 세그먼트 트리를 사용하면 제한 시간 내에 문제를 풀 수 있다.
+   lazy 배열을 따로 만들어 한 번에 업데이트 할 수 있게 한다.
+   
+* segment tree with lazy propagation 코드
+
+typedef long long int ll;
+typedef vector<ll> v;
+
+ll init(v&arr, v&seg, int n, int start, int end) {
+	int mid = (start + end) >> 1;
+	return seg[n] = start == end ? arr[start] : init(arr, seg, n * 2, start, mid) + init(arr, seg, n * 2 + 1, mid + 1, end);
+}
+void lazy_update(v&seg, v&lazy, int n, int start, int end) {
+	if (lazy[n]) {
+		seg[n] += (end - start + 1)*lazy[n];
+		if (start != end) {
+			lazy[n * 2] += lazy[n];
+			lazy[n * 2 + 1] += lazy[n];
+		}
+		lazy[n] = 0;
+	}
+	return;
+}
+void update(v& seg, v&lazy, int n, int start, int end, int left, int right, ll diff) {
+	lazy_update(seg, lazy, n, start, end);
+	if (left > end || right < start) return;
+	else if (left <= start && end <= right) {
+		seg[n] += (end - start + 1)*diff;
+		if (start != end) {
+			lazy[n * 2] += diff;
+			lazy[n * 2 + 1] += diff;
+		}
+		return;
+	}
+	int mid = (start + end) >> 1;
+	update(seg, lazy, n * 2, start, mid, left, right, diff);
+	update(seg, lazy, n * 2 + 1, mid + 1, end, left, right, diff);
+	seg[n] = seg[n * 2] + seg[n * 2 + 1];
+	return;
+}
+ll query(v&seg, v&lazy, int n, int start, int end, int left, int right) {
+	lazy_update(seg, lazy, n, start, end);
+	if (left > end || right < start) return 0;
+	else if (left <= start && end <= right) return seg[n];
+	int mid = (start + end) >> 1;
+	return query(seg, lazy, 2 * n, start, mid, left, right) + query(seg, lazy, 2 * n + 1, mid + 1, end, left, right);
+}
